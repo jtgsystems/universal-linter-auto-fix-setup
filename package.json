@@ -1,0 +1,35 @@
+{
+  "name": "desktop",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "discord-content-specialist.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint . --fix",
+    "format": "prettier --write .",
+    "stylelint": "stylelint '**/*.{css,scss}' --fix",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.22.1"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.44.1",
+    "@typescript-eslint/parser": "^8.44.1",
+    "eslint": "^9.36.0",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
+    "prettier-plugin-packagejson": "^2.5.19",
+    "stylelint": "^16.24.0",
+    "stylelint-config-prettier": "^9.0.5",
+    "stylelint-config-recommended": "^14.0.1",
+    "stylelint-config-standard": "^36.0.1",
+    "stylelint-config-standard-scss": "^13.1.0",
+    "typescript": "^5.9.2"
+  }
+}
