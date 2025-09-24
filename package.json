@@ -1,35 +1,60 @@
 {
-  "name": "desktop",
-  "type": "module",
+  "name": "universal-linter-auto-fix-setup",
   "version": "1.0.0",
-  "description": "",
-  "main": "discord-content-specialist.js",
+  "description": "Portable linting and formatting starter kit for modern Node.js and web projects.",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint . --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "stylelint": "stylelint '**/*.{css,scss}' --fix",
+    "format:check": "prettier --check .",
+    "stylelint": "stylelint \"**/*.{css,scss}\" --allow-empty-input",
+    "stylelint:fix": "stylelint \"**/*.{css,scss}\" --fix --allow-empty-input",
+    "format:all": "npm run lint:fix && npm run stylelint:fix && npm run format",
     "prepare": "husky"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "discord.js": "^14.22.1"
+  "keywords": [
+    "eslint",
+    "prettier",
+    "stylelint",
+    "lint-staged",
+    "husky",
+    "typescript",
+    "node"
+  ],
+  "author": "JTGS Systems",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jtgsystems/universal-linter-auto-fix-setup.git"
   },
+  "bugs": {
+    "url": "https://github.com/jtgsystems/universal-linter-auto-fix-setup/issues"
+  },
+  "homepage": "https://github.com/jtgsystems/universal-linter-auto-fix-setup#readme",
   "devDependencies": {
+    "@eslint/js": "^9.36.0",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@typescript-eslint/parser": "^8.44.1",
     "eslint": "^9.36.0",
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^15.12.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.9",
     "prettier": "^3.6.2",
     "prettier-plugin-packagejson": "^2.5.19",
     "stylelint": "^16.24.0",
-    "stylelint-config-prettier": "^9.0.5",
     "stylelint-config-recommended": "^14.0.1",
     "stylelint-config-standard": "^36.0.1",
     "stylelint-config-standard-scss": "^13.1.0",
+    "stylelint-scss": "^6.4.1",
     "typescript": "^5.9.2"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": "eslint --fix",
+    "*.{css,scss}": "stylelint --fix",
+    "*.{js,jsx,ts,tsx,css,scss,json,yaml,yml,html,md}": "prettier --write"
   }
 }
