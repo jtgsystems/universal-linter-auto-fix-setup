@@ -1,3 +1,5 @@
+![Banner](banner.png)
+
 # ✨ Universal Linter Auto-Fix Setup
 
 [![npm](https://img.shields.io/badge/npm-template-informational)](https://www.npmjs.com/package/universal-linter-auto-fix-setup)
