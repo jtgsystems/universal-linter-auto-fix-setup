@@ -111,3 +111,7 @@ PRs, issues, and stars are all welcome! Feel free to open a discussion if you ha
 Released under the [MIT License](LICENSE). Have fun building! ✌️
 
 Made with ❤️ for teams that want linting to “just work.”
+
+### SEO Keyword Cloud
+
+`eslint` `stylelint` `prettier` `husky` `lintstaged` `autofix` `nodejs` `javascript` `typescript` `css` `scss` `formatting` `quality` `pipeline` `ci` `automation` `hooks` `git` `precommit` `vscode` `editor` `tooling` `workflow` `productivity` `codestyle` `standards` `configuration` `templates` `setup` `boilerplate` `devops` `testing` `coverage` `refactor` `maintainability` `consistency` `bestpractices` `guidelines` `teams` `collaboration` `monorepo` `microservices` `webapps` `frontend` `backend` `scripts` `cli` `npm` `package` `repository`
