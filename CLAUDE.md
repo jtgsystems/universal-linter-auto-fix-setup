@@ -780,3 +780,8 @@ eslint, stylelint, prettier, husky, lint-staged, autofix, nodejs, javascript, ty
 **Last Updated**: 2024-10-26
 **Version**: 1.0.0
 **Maintained By**: JTGS Systems
+
+## Framework Versions
+
+- **TypeScript**: ^5.9.2
+
