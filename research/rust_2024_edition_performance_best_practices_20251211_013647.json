@@ -1,0 +1,92 @@
+{
+  "target": "Rust 2024 Edition performance best practices",
+  "patterns": [
+    {
+      "name": "Borrow Checker & Zero-Cost Abstractions",
+      "legacy": "Manual memory management, unsafe code for performance",
+      "modern": "Leveraging the borrow checker and safe Rust features.  Focus on data structure choice and algorithm complexity.",
+      "benefit": "Eliminates memory safety bugs without runtime overhead, improves code clarity and maintainability, encourages efficient data structures."
+    },
+    {
+      "name": "Span-based String Manipulation",
+      "legacy": "Repeated String::from_utf8_lossy and String::new for inefficient string building.",
+      "modern": "Utilizing `String::with_capacity` and `String::as_str()` with spans for efficient string construction and substring access.",
+      "benefit": "Reduces memory allocations, avoids unnecessary string copies, and allows for zero-cost substring operations."
+    },
+    {
+      "name": "Async/Await Optimization",
+      "legacy": "Blocking I/O operations, `select!` macro with significant overhead.",
+      "modern": "Using `async/await` with tokio or async-std, leveraging `smallvec` for context switching, prioritizing futures that minimize blocking.",
+      "benefit": "Increased concurrency, reduced latency, and more efficient utilization of CPU resources. Async-std has improved futures and selectors."
+    },
+    {
+      "name": "Iterator Chains & `map_into`",
+      "legacy": "Collecting iterators into `Vec` for intermediate processing",
+      "modern": "Using chained iterators directly, employing `map_into` when possible to avoid intermediate allocations.",
+      "benefit": "Avoids unnecessary allocations, leading to faster processing and reduced memory footprint."
+    },
+    {
+      "name": "Inline Attributes",
+      "legacy": "Relying solely on compiler optimizations.",
+      "modern": "Strategic use of `#[inline]` attributes on performance-critical functions, but with careful consideration of code size impact.",
+      "benefit": "Potential for reduced function call overhead in hot loops.  Requires careful profiling to confirm benefit."
+    },
+    {
+      "name": "SIMD Intrinsics",
+      "legacy": "Sequential operations on data.",
+      "modern": "Using `core::arch` intrinsics for Single Instruction, Multiple Data (SIMD) operations where appropriate.  Using `std::simd` for higher-level abstractions.",
+      "benefit": "Increased performance for data-parallel operations, such as vector math and image processing."
+    },
+    {
+      "name": "Const Generics and Const Traits",
+      "legacy": "Complex compile-time calculations done at runtime.",
+      "modern": "Utilizing `const generics` and `const traits` to perform calculations and logic at compile time.",
+      "benefit": "Eliminates runtime overhead for tasks that can be determined at compile time, reduces code size, enables more efficient data structures."
+    },
+    {
+      "name": "Faster JSON Parsing and Serialization",
+      "legacy": "Using `serde_json` without optimization flags.",
+      "modern": "Employing `serde_json` with flags like `serde_json::ser::Serializer::with_max_capacity` for serialization and `serde_json::de::Deserializer::with_capacity` for deserialization when input sizes are known; explore alternatives like `postcard` for specialized use cases.",
+      "benefit": "Reduced allocations and improved throughput for JSON processing."
+    },
+    {
+      "name": "Regex Engine Improvements",
+      "legacy": "Using default regex engine configurations.",
+      "modern": "Fine-tuning regex compilation flags (e.g., `regex::Regex::new_template` with specified options) and profiling regex patterns.",
+      "benefit": "Faster regex matching and reduced memory consumption."
+    },
+    {
+      "name": "Custom Allocators",
+      "legacy": "Relying solely on the global allocator.",
+      "modern": "Employing custom allocators like `bumpalo` or `jemalloc` to optimize memory allocation patterns for specific workloads.  Careful benchmarking is crucial.",
+      "benefit": "Improved memory allocation speed and reduced fragmentation in certain scenarios."
+    },
+    {
+      "name": "Profiling with Instruments",
+      "legacy": "Relying solely on simple benchmarking",
+      "modern": "Using `perf` (Linux), Instruments (macOS), and other profiling tools to identify performance bottlenecks.",
+      "benefit": "Precise identification of performance hotspots, allowing for targeted optimization efforts."
+    },
+    {
+      "name": "Mir Interpreted vs. Mir Optimized",
+      "legacy": "Unaware of the impact of runtime optimizations on MIR.",
+      "modern": "Understanding that release builds perform MIR optimization and using profile guided optimization, if available (limited in Rust currently but future development focus).",
+      "benefit": "Achieving significant performance gains through runtime optimization."
+    },
+    {
+      "name": "Avoid `unsafe` when avoidable",
+      "legacy": "Overuse of `unsafe` to micro-optimize.",
+      "modern": "Prefer safe Rust features whenever possible. Carefully profile and benchmark `unsafe` blocks before introducing them.",
+      "benefit": "Improved code safety, easier maintenance, and often, no measurable performance difference compared to `unsafe` code."
+    }
+  ],
+  "sources": [
+    "https://doc.rust-lang.org/std/index.html",
+    "https://tokio.rs/docs/",
+    "https://async-std.rs/docs/",
+    "https://serde-rs.github.io/serde_json/",
+    "https://github.com/rust-lang/rust/blob/master/src/tools/perf/README.md",
+    "https://github.com/rust-lang/rust/blob/master/src/tools/rustc-perf/README.md",
+    "https://doc.rust-lang.org/nightly/unstable-features/const-generics.html"
+  ]
+}

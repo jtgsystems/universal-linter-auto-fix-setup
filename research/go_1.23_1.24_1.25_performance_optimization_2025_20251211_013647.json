@@ -1,0 +1,92 @@
+{
+  "target": "Go 1.23 1.24 1.25 performance optimization 2025",
+  "patterns": [
+    {
+      "name": "String Builder vs. String Concatenation",
+      "legacy": "Using `+` operator for repeated string concatenation.",
+      "modern": "Using `strings.Builder`.",
+      "benefit": "String concatenation with `+` creates new string objects on each operation. `strings.Builder` minimizes allocations, leading to significant performance improvements, especially in loops."
+    },
+    {
+      "name": "Map Initialization",
+      "legacy": "Initializing maps with `make(map[keytype]valuetype)` and then assigning values individually.",
+      "modern": "Using the map literal syntax: `map[keytype]valuetype{key: value, key: value}`.",
+      "benefit": "Map literals offer a more concise and often more efficient way to initialize maps, avoiding potentially unnecessary allocations compared to repeatedly calling `make` and then assigning."
+    },
+    {
+      "name": "Channel Buffered vs. Unbuffered",
+      "legacy": "Favoring unbuffered channels without careful consideration of concurrency.",
+      "modern": "Selecting buffered channels when appropriate to decouple senders and receivers, avoiding blocking and improving throughput.  Consider the number of goroutines and expected data flow.",
+      "benefit": "Unbuffered channels can cause goroutines to block unnecessarily. Buffered channels allow for more asynchronous communication, increasing overall efficiency when appropriate. Careful channel size selection is critical to avoid excessive memory use."
+    },
+    {
+      "name": "Goroutine Creation Overhead",
+      "legacy": "Creating goroutines excessively for trivial tasks.",
+      "modern": "Minimize goroutine creation. Consider worker pools or alternative approaches if a large number of small goroutines are required. Leverage existing goroutines where possible.",
+      "benefit": "Goroutine creation has overhead. Reducing unnecessary goroutines can reduce CPU usage and improve latency."
+    },
+    {
+      "name": "Error Handling",
+      "legacy": "Using `if err != nil` for basic error checking.",
+      "modern": "Using `if err != nil { return err }` (or similar pattern) in functions that return errors.  Consider error wrapping with `%w` for more context.",
+      "benefit": "Consistent error handling makes code cleaner and allows for more robust error propagation.  Error wrapping with `%w` in Go 1.13+ provides valuable context without string concatenation."
+    },
+    {
+      "name": "JSON Encoding/Decoding",
+      "legacy": "Using the standard `encoding/json` package without optimization.",
+      "modern": "Explore alternative JSON libraries (e.g., `encoding/json` with specific field tags like `-`, `omitempty`), and consider `jsoniter` for significant speed improvements in high-throughput scenarios. Use field masking for performance.",
+      "benefit": "Certain JSON libraries and configurations offer significant speed improvements. `encoding/json`'s field tags enable skipping fields, further reducing encoding time. `jsoniter` is generally much faster for serializing and deserializing larger structures."
+    },
+    {
+      "name": "Regular Expressions",
+      "legacy": "Complex, inefficient regular expressions.",
+      "modern": "Simplify regular expressions where possible. Consider alternative string manipulation techniques if regex is not strictly necessary. Utilize precompiled regex.",
+      "benefit": "Regular expression compilation and execution can be expensive. Simple string functions are almost always faster than equivalent regular expressions."
+    },
+    {
+      "name": "Data Structures \u2013 Slices vs. Arrays",
+      "legacy": "Unnecessary use of arrays when slices offer more flexibility and often better performance.",
+      "modern": "Favor slices over arrays, especially when the size is not known at compile time.",
+      "benefit": "Slices dynamically resize, avoiding costly reallocations.  They also offer a more convenient way to work with sequences of data."
+    },
+    {
+      "name": "Context Propagation",
+      "legacy": "Manually passing context values.",
+      "modern": "Leverage `context.WithXXX` functions to derive contexts, streamlining cancellation and deadline propagation.  Use `context.Background()` appropriately.",
+      "benefit": "Contexts simplify the management of timeouts, cancellations, and other request-scoped values across multiple goroutines, avoiding boilerplate code."
+    },
+    {
+      "name": "Compiler Flags - Link-Time Position Independent (LTO)",
+      "legacy": "Not utilizing compiler flags for optimization.",
+      "modern": "Utilize `-buildmode=pie` and explore `-lto` (Link Time Optimization) for potential performance gains. Requires careful testing as LTO can increase build times and sometimes introduces instability.",
+      "benefit": "LTO enables cross-function inlining and other optimizations, potentially leading to significant performance improvements."
+    },
+    {
+      "name": "Compiler Flags - Inlining",
+      "legacy": "Relying solely on the compiler to decide inlining.",
+      "modern": "Consider the `-forceinline` flag for critical functions, but use with caution and benchmark thoroughly.",
+      "benefit": "Inlining can reduce function call overhead, but improper use can hinder performance. Requires careful analysis and testing."
+    },
+    {
+      "name": "GC Tuning",
+      "legacy": "Using default GC settings.",
+      "modern": "Experiment with `GOGC` and `GOHEAP` environment variables to fine-tune garbage collection. Understand the impact of different GC parameters on latency and throughput. Consider using `runtime.ReadMemStats` to monitor memory usage.",
+      "benefit": "Optimizing GC parameters can reduce latency and improve throughput, but requires careful monitoring and benchmarking.  `GOGC` controls the initial heap size and `GOHEAP` limits the maximum heap size."
+    },
+    {
+      "name": "Deprecated: `sync.Mutex` for short-lived critical sections",
+      "legacy": "Using `sync.Mutex` for very short, frequently executed critical sections.",
+      "modern": "Consider using atomic operations or compare-and-swap operations (`sync/atomic`) for finer-grained synchronization when mutex contention is a problem.  Benchmark thoroughly.",
+      "benefit": "Mutexes introduce overhead.  Atomic operations can be significantly faster for simple synchronization tasks."
+    }
+  ],
+  "sources": [
+    "Go Language Specification",
+    "Go Blog: https://go.dev/blog/",
+    "Go Profiling Tools (pprof)",
+    "Go Benchmark Package",
+    "Go Performance Wiki: https://github.com/golang/go/wiki/Performance",
+    "Go Compiler Documentation",
+    "GitHub Issues and Discussions related to performance"
+  ]
+}

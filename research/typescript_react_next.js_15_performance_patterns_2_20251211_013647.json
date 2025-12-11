@@ -1,0 +1,74 @@
+{
+  "target": "TypeScript React Next.js 15 performance patterns 2025",
+  "patterns": [
+    {
+      "name": "Server Components & Directives",
+      "legacy": "Rendering complex components on the client (CSR/SSR with hydration)",
+      "modern": "Leveraging Server Components and the 'use client' directive strategically for granular control over rendering location.",
+      "benefit": "Reduced client-side JavaScript bundle size, faster initial load times, and improved Time to Interactive (TTI) by offloading rendering to the server. Next.js 15's architecture shifts the focus away from full-page hydration to selective hydration of interactive components."
+    },
+    {
+      "name": "Route Transformers",
+      "legacy": "Manual middleware or custom server functions for pre-processing requests.",
+      "modern": "Using Next.js Route Transformers for code splitting and dynamic imports around API routes or server components.  Extremely powerful for conditional code execution.",
+      "benefit": "Significantly reduces initial JavaScript payload size by conditionally loading modules only when needed, optimizing critical rendering paths. Allows for A/B testing, feature flags, and other conditional logic at the route level without full server restarts."
+    },
+    {
+      "name": "Turbopack Integration (SWC)",
+      "legacy": "Webpack or older bundlers for asset bundling and compilation.",
+      "modern": "Utilizing Turbopack (based on SWC) for dramatically faster development builds and incremental builds, along with production builds, via Rust-based compilation and optimized dependency resolution.",
+      "benefit": "Significant reduction in build times (orders of magnitude faster), faster hot module replacement (HMR), and improved developer productivity.  SWC\u2019s faster compilation benefits both development and production."
+    },
+    {
+      "name": "Server Actions (Optimistic Updates)",
+      "legacy": "Traditional API calls with loading states and manual optimistic updates.",
+      "modern": "Employing Server Actions for optimistic UI updates and background data fetching, leveraging Next.js's server-side data management.",
+      "benefit": "Improved perceived performance and user experience. Eliminates the need for manual optimistic update logic and simplifies data synchronization between client and server. Optimizes resource usage by allowing background processing."
+    },
+    {
+      "name": "Selective Hydration",
+      "legacy": "Full page hydration",
+      "modern": "Using Next.js 15's selective hydration features, allowing targeted hydration of components.",
+      "benefit": "Smaller client-side JavaScript, faster interactivity.  Reduces the amount of client-side JavaScript required for hydration, focusing on interactive elements."
+    },
+    {
+      "name": "TypeScript Performance Improvements (ES2025)",
+      "legacy": "Legacy compiler flags impacting type checking and compilation speed.",
+      "modern": "Leveraging the latest TypeScript features including projected performance gains from the compiler. Potentially enabling features like inferred argument types in certain situations to reduce boilerplate.",
+      "benefit": "Faster type checking and improved compile times. Reduced bundle size through better code generation."
+    },
+    {
+      "name": "Web Vitals API Integration",
+      "legacy": "Manual Web Vitals measurements and reporting.",
+      "modern": "Using Next.js's built-in Web Vitals instrumentation and monitoring to proactively identify and address performance bottlenecks.",
+      "benefit": "Automated performance monitoring and alerts. Provides actionable insights for continuous performance optimization. Better alignment with Core Web Vitals and SEO."
+    },
+    {
+      "name": "V8 JIT Compiler Tuning",
+      "legacy": "Default V8 JIT compiler settings",
+      "modern": "Exploring Node.js flags (if applicable) related to V8 JIT compilation and garbage collection to fine-tune performance.  (Highly environment specific).",
+      "benefit": "Potential for improved JavaScript execution speed and reduced memory usage (requires extensive profiling and benchmarking)."
+    },
+    {
+      "name": "JSON.parse/stringify Optimization",
+      "legacy": "Standard JSON.parse/stringify for complex objects.",
+      "modern": "Consider leveraging faster JSON libraries (e.g., `fast-json-stringify`, `json-stringify-safe`) or using Next.js built-in optimizations where applicable, particularly for large data sets.  Profile JSON operations.",
+      "benefit": "Reduced parsing and serialization time for large JSON payloads, leading to faster data transfer and processing."
+    },
+    {
+      "name": "Avoid Legacy Class Components",
+      "legacy": "Extensive use of class components for state management and lifecycle methods.",
+      "modern": "Primarily using functional components with hooks (useState, useEffect, etc.) and Server Components where appropriate.  Favor Server Components for data fetching where possible.",
+      "benefit": "Improved code readability, reduced bundle size (functional components are often smaller), and better alignment with modern React patterns. Server Components offer significant performance advantages."
+    }
+  ],
+  "sources": [
+    "Next.js 15 Release Notes",
+    "TypeScript Roadmap (ES2025)",
+    "V8 Engine Documentation",
+    "React Blog",
+    "Node.js Documentation",
+    "Core Web Vitals Documentation",
+    "GitHub repositories for Turbopack and SWC"
+  ]
+}

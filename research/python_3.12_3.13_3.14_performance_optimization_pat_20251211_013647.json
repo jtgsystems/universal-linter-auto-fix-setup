@@ -1,0 +1,85 @@
+{
+  "target": "Python 3.12 3.13 3.14 performance optimization patterns 2025",
+  "patterns": [
+    {
+      "name": "Structured Pattern Matching for Dispatch",
+      "legacy": "Long if/elif/else chains or dictionary-based dispatch with manual checks.",
+      "modern": "Using `match` statements (structural pattern matching) for efficient and readable dispatch logic.",
+      "benefit": "Improved code clarity and potential for faster execution due to optimized pattern matching implementations in the interpreter. Eliminates the overhead of multiple conditional checks."
+    },
+    {
+      "name": "TypedDict for Data Validation and Performance",
+      "legacy": "Manual attribute checking or `dataclasses` with runtime checks for type correctness.",
+      "modern": "Utilizing `TypedDict` for defining data structures with type hints. Can be used with static analysis tools and may provide more efficient runtime checks.",
+      "benefit": "Enhanced static analysis, potential for faster runtime validation (depending on usage and static type checking), clearer intent."
+    },
+    {
+      "name": "Self Type Annotations for Method Resolution",
+      "legacy": "Manual class inheritance and method overriding; potential for incorrect method resolution or unclear inheritance hierarchies.",
+      "modern": "Using `typing.Self` to annotate methods that return an instance of the same class. Improves code readability and potentially optimizes method resolution.",
+      "benefit": "More precise type information for static analysis and potentially faster method resolution during runtime, especially in complex inheritance scenarios."
+    },
+    {
+      "name": "Faster JSON Parsing with `dataclasses` and `field`",
+      "legacy": "Manual parsing and attribute assignment from JSON objects.",
+      "modern": "Using `dataclasses` with `field` to directly populate objects from JSON data using `dataclasses.asdict()` or `json.loads()` into a dataclass instance. Also leverage the `json.tool` improvements.",
+      "benefit": "Reduced boilerplate code, potentially faster JSON processing due to optimized dataclass construction and the advancements in the `json` module.  Data integrity is better guaranteed through type annotations within the dataclass."
+    },
+    {
+      "name": "Regex Engine Improvements",
+      "legacy": "Complex regex patterns often led to performance bottlenecks.",
+      "modern": "Leverage the ongoing improvements in the `re` module, particularly for pattern compilation and more efficient matching algorithms. Employ non-capturing groups `(?:...)` where appropriate.",
+      "benefit": "Faster regular expression matching, reduced memory usage during pattern compilation and execution."
+    },
+    {
+      "name": "Memoryview Optimization",
+      "legacy": "Copying data unnecessarily in loops when working with binary data.",
+      "modern": "Using `memoryview` objects to access raw data buffers directly, avoiding unnecessary copies.",
+      "benefit": "Significant performance gains when dealing with large binary datasets, reduced memory footprint."
+    },
+    {
+      "name": "Inline Cache Optimization for Dictionary Lookups",
+      "legacy": "Iterating through dictionaries for key lookups can be slow.",
+      "modern": "Python's JIT compiler (PyPy and optimized CPython) is increasingly leveraging inline caches for dictionary lookups. Minimize hash collisions by choosing good hashing functions for keys (when possible).",
+      "benefit": "Faster dictionary lookups, especially for frequently accessed keys, through optimized caching mechanisms."
+    },
+    {
+      "name": "Avoiding Global Interpreter Lock (GIL) Bottlenecks",
+      "legacy": "Multithreading with Python's GIL limited true parallelism.",
+      "modern": "Using multiprocessing for CPU-bound tasks, leveraging libraries like `asyncio` for I/O-bound concurrency, and exploring alternative implementations of the GIL (future Python versions may have better GIL support).",
+      "benefit": "Improved utilization of multi-core processors, higher throughput for concurrent tasks."
+    },
+    {
+      "name": "Traceback Simplification",
+      "legacy": "Verbose and difficult-to-debug tracebacks.",
+      "modern": "Utilize Python\u2019s enhanced traceback simplification features, especially useful in production environments, minimizing the amount of code exposed in error logs.  Configure logging appropriately to capture relevant context.",
+      "benefit": "Improved debugging efficiency, reduced security risks associated with exposing sensitive code details in error logs."
+    },
+    {
+      "name": "Using `asyncio.to_thread` for Blocking Operations",
+      "legacy": "Blocking calls in async tasks would halt execution.",
+      "modern": "Use `asyncio.to_thread` to offload blocking (CPU-bound or I/O-bound) functions to a separate thread pool, preventing the event loop from being blocked.",
+      "benefit": "Maintains responsiveness in asynchronous applications while running blocking operations, prevents event loop stalls."
+    },
+    {
+      "name": "Avoid Excessive Attribute Access",
+      "legacy": "Repeatedly accessing object attributes in loops.",
+      "modern": "Cache attribute values in local variables before use, particularly within loops.  Consider using `__slots__` to optimize memory usage and attribute access (be aware of its limitations).",
+      "benefit": "Reduced overhead from attribute lookups, improved performance."
+    },
+    {
+      "name": "Avoiding Unnecessary Object Creation",
+      "legacy": "Creating many small objects frequently within loops or functions.",
+      "modern": "Reuse objects whenever possible, use generators to avoid creating large lists in memory, and consider using object pools for frequently created objects. Utilize in-place operations.",
+      "benefit": "Reduced memory allocation and garbage collection overhead, improved performance."
+    }
+  ],
+  "sources": [
+    "Python Documentation (3.12, 3.13, 3.14)",
+    "CPython Enhancement Proposals (PEP)",
+    "PyPy Documentation",
+    "Benchmarking Results (various online resources)",
+    "Python Performance Tips and Tricks (blog posts, articles)",
+    "CPython Source Code Analysis"
+  ]
+}

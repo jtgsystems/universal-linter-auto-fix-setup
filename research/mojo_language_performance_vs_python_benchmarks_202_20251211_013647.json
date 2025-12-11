@@ -1,0 +1,73 @@
+{
+  "target": "Mojo Language performance vs Python benchmarks 2025",
+  "patterns": [
+    {
+      "name": "Dynamic Dispatch Replacement",
+      "legacy": "Extensive use of Python's dynamic dispatch, particularly in loops and frequently called functions.",
+      "modern": "Leveraging Mojo's static dispatch via `final` methods, `struct` composition (for data-oriented code), and explicit type annotations to enable more aggressive compiler optimizations.",
+      "benefit": "Static dispatch eliminates runtime lookups, significantly reducing overhead and enabling aggressive inlining and other optimizations. Improved locality of reference."
+    },
+    {
+      "name": "Global Interpreter Lock (GIL) Avoidance",
+      "legacy": "Relying on Python's GIL for concurrency, leading to thread contention and limited parallelism.",
+      "modern": "Utilizing Mojo's inherent support for fine-grained parallelism via `spawn` and `async/await` constructs.  Employing `rayon` for data-parallel operations where applicable.  Designing code to minimize shared mutable state.",
+      "benefit": "Eliminates GIL limitations, allowing true parallelism and improved performance on multi-core systems. Enables higher throughput for I/O-bound and compute-bound tasks."
+    },
+    {
+      "name": "Memory Management Strategy",
+      "legacy": "Python's garbage collection, which can introduce unpredictable pauses and overhead.",
+      "modern": "Mojo\u2019s ownership model with RAII (Resource Acquisition Is Initialization).  Utilizing arena allocators for short-lived objects in performance-critical sections. Explicit memory control where appropriate for fine-grained optimization.  Leveraging Mojo's arena allocator features.",
+      "benefit": "Reduced GC pauses, improved memory locality, and predictable memory management behavior. Explicit control for performance-critical allocations."
+    },
+    {
+      "name": "Data Structures Optimization",
+      "legacy": "Using generic Python lists and dictionaries for all data storage, often resulting in suboptimal memory layouts and access patterns.",
+      "modern": "Employing Mojo's `Sequence` and `Dictionary` types with explicit type annotations for value-typed data structures. Designing custom data structures with contiguous memory layouts for vectorized operations and efficient SIMD processing. Utilizing Mojo's `Packed` data structure for maximum density.",
+      "benefit": "Improved memory layout for better data locality, enabling vectorized operations and SIMD instructions. Reduced memory overhead for value-typed data."
+    },
+    {
+      "name": "Numerical Computation",
+      "legacy": "Using Python's built-in numerical functions and NumPy for numerical computations, which can be significantly slower than native code.",
+      "modern": "Leveraging Mojo's built-in support for SIMD (Single Instruction, Multiple Data) operations directly. Utilizing Mojo\u2019s `SIMD` type and intrinsics.  Writing custom kernels using Mojo\u2019s value types for maximum performance.  Using Mojo\u2019s `math` library for optimized mathematical functions.",
+      "benefit": "Significant speedup for numerical computations due to SIMD processing and optimized native code.  Reduced overhead compared to NumPy and Python's built-in functions."
+    },
+    {
+      "name": "String Manipulation",
+      "legacy": "String concatenation using `+` operator, repeated string building, inefficient string processing.",
+      "modern": "Using Mojo's `String` type with mutable string buffers.  Utilizing `StringBuilder` (if mutable strings aren\u2019t sufficient) for efficient string construction. Employing Mojo\u2019s regular expression engine (if applicable).",
+      "benefit": "Reduced string allocation overhead, improved performance for string processing operations. More efficient regular expression execution."
+    },
+    {
+      "name": "IO Operations",
+      "legacy": "Blocking IO operations in Python leading to performance bottlenecks.",
+      "modern": "Using Mojo\u2019s asynchronous IO primitives (`async` and `await`). Employing buffered IO streams for efficient data transfer. Optimizing file access patterns for sequential reads and writes.",
+      "benefit": "Improved responsiveness and throughput for I/O-bound tasks. Reduced latency for network communication and file access."
+    },
+    {
+      "name": "Compile-time Computation",
+      "legacy": "Performing computations at runtime that could be done at compile time.",
+      "modern": "Utilizing Mojo's `const` and `static` keywords, and `constexpr` functions to perform calculations at compile time. Exploiting Mojo\u2019s `select` and `switch` statements for compile-time dispatch.",
+      "benefit": "Reduced runtime overhead by precomputing values at compile time. Improved code optimization and better compile-time error checking."
+    },
+    {
+      "name": "Deprecated: Global variables in performance-critical sections",
+      "legacy": "Using global variables frequently accessed in loops or performance-critical sections.",
+      "modern": "Passing data as arguments to functions, utilizing struct members, and minimizing global state.  Employing Mojo's `Cell` for mutable state in concurrent scenarios.",
+      "benefit": "Improved code locality, reduced contention, and better optimization opportunities."
+    },
+    {
+      "name": "Deprecated: Heavy reliance on Python libraries",
+      "legacy": "Extensive usage of Python libraries (e.g., NumPy, SciPy) for performance-critical tasks.",
+      "modern": "Re-implementing performance-critical components directly in Mojo or leveraging Mojo-native equivalents. Using Mojo's built-in features for common tasks.",
+      "benefit": "Eliminated overhead associated with Python interpreter and library bindings, leading to significant performance gains."
+    }
+  ],
+  "sources": [
+    "Mojo Language Documentation (Official)",
+    "Mojo Language Specification",
+    "Mojo Performance Benchmarks (Official)",
+    "Mojo Community Forums and Blogs",
+    "Academic research on Mojo performance optimization",
+    "Internal Mojo Performance Engineering Reports"
+  ]
+}
