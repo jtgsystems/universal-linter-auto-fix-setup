@@ -1,46 +1,41 @@
-import asyncio
+#!/usr/bin/env python3
+"""
+Performance Researcher - Uses Ollama + INFOGRABER pattern for Dec 2025 Optimization Research
+"""
+
 import json
 import logging
-import sys
+from datetime import datetime
 from pathlib import Path
 
-# --- 1. SETUP & IMPORTS ---
-# Ensure we can import from backend/app/priority_core
-sys.path.append(str(Path.cwd()))
-sys.path.append(str(Path.cwd() / "backend" / "app" / "priority_core"))
+import ollama  # Direct Ollama integration like INFOGRABER
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger("perf_researcher")
 
-try:
-    from backend.app.priority_core.file_ops import atomic_write, safe_read_file
-    from backend.app.priority_core.model_router import UnifiedModelRouter
-    from backend.app.priority_core.resilience import ResilientExecutor
-except ImportError as e:
-    logger.error(f"Failed to import core modules: {e}")
-    logger.error("Ensure you are running from the ULTRON_V3 root directory.")
-    sys.exit(1)
-
-# --- 2. CONFIGURATION ---
+# --- Configuration ---
 RESEARCH_TARGETS = [
-    "Python 3.12+ 3.13 performance optimization",
-    "TypeScript React Next.js 15+ performance patterns",
-    "Go 1.23+ performance optimization",
+    "Python 3.12 3.13 3.14 performance optimization patterns 2025",
+    "TypeScript React Next.js 15 performance patterns 2025",
+    "Go 1.23 1.24 1.25 performance optimization 2025",
     "Rust 2024 Edition performance best practices",
-    "Mojo Language vs Python performance benchmarks",
+    "Mojo Language performance vs Python benchmarks 2025",
 ]
 
 OUTPUT_DIR = Path("04_ARCHIVE/research_findings")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# --- 3. PROMPTS ---
-RESEARCH_PROMPT_TEMPLATE = """
-As an expert Performance Engineer, research the latest OFFICIAL performance optimization patterns for {target} as of December 2025.
+# Default Model (using Gemma3 which is confirmed available)
+DEFAULT_MODEL = "gemma3:12b"
+
+# --- Research Prompt Template ---
+RESEARCH_PROMPT = """You are an expert Performance Engineer researching the latest OFFICIAL performance optimization patterns for: {target}
+
 Focus on:
 1. New language features that replace slower legacy patterns.
 2. Compiler flags or runtime settings (e.g., GC tuning, JIT).
-3. Standard library improvements (e.g. faster JSON, better regex).
+3. Standard library improvements (e.g., faster JSON, better regex).
 4. Deprecated patterns to avoid.
 
 Return the findings in this exact JSON format:
@@ -48,82 +43,122 @@ Return the findings in this exact JSON format:
     "target": "{target}",
     "patterns": [
         {{
-            "name": "Validation via tuple",
-            "legacy": "type(x) == int",
-            "modern": "isinstance(x, int)",
-            "benefit": "Faster, supports inheritance"
+            "name": "Short descriptive name",
+            "legacy": "The old/slow way",
+            "modern": "The new/fast way",
+            "benefit": "Why it's better"
         }}
     ],
-    "sources": ["official_docs", "benchmarks"]
+    "sources": ["list", "of", "source", "types"]
 }}
+
+IMPORTANT: Return ONLY the JSON. No explanations, no markdown fences.
 """
 
 
-# --- 4. RESEARCH LOGIC ---
-async def conduct_research(target: str, router: UnifiedModelRouter):
+def get_available_models() -> list[str]:
+    """Get list of available Ollama models."""
+    try:
+        result = ollama.list()
+        # The API returns {"models": [Model objects with .model attribute]}
+        models_data = result.get("models", [])
+        models = []
+        for m in models_data:
+            # Handle both dict and object responses
+            if hasattr(m, "model"):
+                # It's a Model object, get the .model attribute (the name string)
+                models.append(m.model)
+            elif isinstance(m, dict) and "name" in m:
+                models.append(m["name"])
+            elif isinstance(m, str):
+                models.append(m)
+        return models if models else [DEFAULT_MODEL]
+    except Exception as e:
+        logger.warning(f"Could not list Ollama models: {e}")
+        return [DEFAULT_MODEL]
+
+
+def research_topic(target: str, model: str = DEFAULT_MODEL) -> dict | None:
+    """Conduct research on a single topic using Ollama."""
     logger.info(f"🔎 Researching: {target}...")
 
-    prompt = RESEARCH_PROMPT_TEMPLATE.format(target=target)
+    prompt = RESEARCH_PROMPT.format(target=target)
 
     try:
-        # Use a high-reasoning model for research
-        response = await router.chat(
-            system_prompt="You are a specialized research agent.",
-            user_message=prompt,
-            model_preference="codex_cli",  # Or appropriate model
-        )
+        response = ollama.generate(model=model, prompt=prompt, stream=False)
+        content = response.get("response", "").strip()
 
-        # Save raw finding
-        safe_name = target.replace(" ", "_").replace("+", "plus").lower()
-        filename = OUTPUT_DIR / f"{safe_name}.json"
-
-        # Clean response to get JSON
-        content = response.get("content", "{}")
-        # Basic markdown fence stripping
+        # Clean up response (remove markdown fences if present)
         if "```json" in content:
             content = content.split("```json")[1].split("```")[0].strip()
         elif "```" in content:
             content = content.split("```")[1].split("```")[0].strip()
 
-        atomic_write(filename, content)
-        logger.info(f"✅ Findings saved to {filename}")
-        return content
+        # Try to parse as JSON
+        try:
+            parsed = json.loads(content)
+            logger.info(
+                f"✅ Found {len(parsed.get('patterns', []))} patterns for {target}"
+            )
+            return parsed
+        except json.JSONDecodeError:
+            logger.warning(f"⚠️ Could not parse JSON for {target}, saving raw")
+            return {"target": target, "raw_response": content, "patterns": []}
 
+    except ollama.ResponseError as e:
+        logger.error(f"❌ Ollama response error for {target}: {e}")
     except Exception as e:
         logger.error(f"❌ Failed to research {target}: {e}")
-        return None
+
+    return None
 
 
-async def main():
-    logger.info("🚀 Starting Global Performance Research Task (Dec 2025 Standards)")
+def save_findings(findings: list[dict]) -> Path:
+    """Save all findings to a master report."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    router = UnifiedModelRouter()
-    executor = ResilientExecutor()  # Using our new resilience class
+    # Save individual findings
+    for finding in findings:
+        if finding:
+            target = finding.get("target", "unknown")
+            safe_name = target.replace(" ", "_").replace("+", "plus").lower()[:50]
+            filename = OUTPUT_DIR / f"{safe_name}_{timestamp}.json"
+            filename.write_text(json.dumps(finding, indent=2), encoding="utf-8")
+            logger.info(f"📄 Saved: {filename.name}")
 
-    tasks = []
+    # Save master report
+    master_file = OUTPUT_DIR / f"master_report_{timestamp}.json"
+    master_file.write_text(json.dumps(findings, indent=2), encoding="utf-8")
+    logger.info(f"📜 Master report: {master_file}")
+
+    return master_file
+
+
+def main():
+    logger.info("🚀 Starting Performance Research (Ollama + INFOGRABER Pattern)")
+
+    # Check available models
+    models = get_available_models()
+    model = (
+        DEFAULT_MODEL if DEFAULT_MODEL in models else models[0] if models else "phi4"
+    )
+    logger.info(f"🤖 Using model: {model}")
+
+    # Conduct research
+    findings = []
     for target in RESEARCH_TARGETS:
-        tasks.append(conduct_research(target, router))
+        result = research_topic(target, model)
+        if result:
+            findings.append(result)
 
-    results = await asyncio.gather(*tasks)
-
-    logger.info("🏁 Research complete. Aggregating results...")
-
-    # Create a master report
-    master_report = []
-    for res in results:
-        if res:
-            try:
-                master_report.append(json.loads(res))
-            except:
-                pass
-
-    atomic_write(
-        OUTPUT_DIR / "master_report_dec_2025.json", json.dumps(master_report, indent=2)
-    )
-    logger.info(
-        f"📜 Master report saved to {OUTPUT_DIR / 'master_report_dec_2025.json'}"
-    )
+    # Save everything
+    if findings:
+        master_file = save_findings(findings)
+        logger.info(f"\n🏁 Research complete! {len(findings)} topics researched.")
+        logger.info(f"📁 Results saved to: {OUTPUT_DIR}")
+    else:
+        logger.warning("⚠️ No research findings generated.")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

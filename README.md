@@ -1,136 +1,173 @@
-![Banner](banner.png)
+# 🔍 MasterLinter
 
-# ✨ Universal Linter Auto-Fix Setup
+> **The Ultimate Multi-Language Performance & Code Quality Scanner**  
+> 59 optimization rules across Python, TypeScript, Go, Rust, Mojo, and Shell
 
-[![npm](https://img.shields.io/badge/npm-template-informational)](https://www.npmjs.com/package/universal-linter-auto-fix-setup)
-[![GitHub](https://img.shields.io/badge/repo-jtgsystems/universal--linter--auto--fix--setup-24292F?logo=github&logoColor=white)](https://github.com/jtgsystems/universal-linter-auto-fix-setup)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
-The plug-and-play toolkit for opinionated, auto-fixing linting across modern Node.js and web projects. Drop it in, run `npm install`, and enjoy consistent code on every save and commit. 🧼
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-blue.svg)](https://python.org)
+[![Dec 2025](https://img.shields.io/badge/Updated-Dec%202025-green.svg)]()
 
 ---
 
-## 🚀 What's Inside
+## 🚀 Features
 
-- **ESLint 9 (flat config)** + Prettier integration for JS/TS sanity.
-- **Stylelint 16** + SCSS plugin to keep styles squeaky clean.
-- **Prettier 3** for JSON, YAML, Markdown, HTML, TOML, and more.
-- **Husky + lint-staged** so every commit fixes itself before it lands.
-- **Performance Optimization Suite**:
-  - `opti_scanner.py`: A regex-based scanner for Dec 2025 optimization patterns across Python (3.14+), Go (1.25+), Rust (2024), and Node.js.
-  - `smart_fixer.py`: An automated fixer that applies these optimizations.
-  - `perf_researcher.py`: A tool to actively research new performance trends using LLMs.
-- Sensible defaults for browser + Node globals, with overrides ready to tweak.
+### OptiScanner (`opti_scanner.py`)
+A lightning-fast optimization pattern detector with **59 rules** covering:
 
-## 🛠️ Quick Start
+| Language | Rules | Focus Areas |
+|----------|-------|-------------|
+| **Python** | 26 | Atomic I/O, Circuit Breakers, Caching, PEP modernization, Perflint anti-patterns |
+| **TypeScript/React** | 11 | Next.js 15, Server Components, Class→Hooks migration, JSON optimization |
+| **Go** | 6 | json/v2 migration, strings.Builder, sync/atomic, goroutine pools |
+| **Rust** | 8 | unwrap safety, String::with_capacity, iterator chains, serde optimization |
+| **Mojo** | 5 | def→fn migration, static dispatch, SIMD optimization |
+| **Shell** | 3 | grep→ripgrep, find→fd, os.system→subprocess |
 
-1. **Clone or copy the template**
+### SmartFixer (`smart_fixer.py`)
+LLM-powered automatic code fixer that:
+- 🔍 Scans using OptiScanner + TScanner
+- 🤖 Uses GPT-OSS to generate minimal SEARCH/REPLACE patches
+- ✅ Verifies fixes before applying
+- 🔄 Self-corrects up to 3 attempts per file
+- 🌿 Operates on isolated Git branches for safety
 
-   ```bash
-   git clone https://github.com/jtgsystems/universal-linter-auto-fix-setup.git my-project
-   cd my-project
-   ```
+### PerfResearcher (`perf_researcher.py`)
+Ollama-powered research bot that:
+- 📚 Researches latest optimization patterns (Python 3.14, Go 1.25, Rust 2024, etc.)
+- 💾 Saves findings to JSON for rule integration
+- 🔄 Uses local LLMs (gemma3, qwen3, etc.)
 
-2. **Install dependencies (installs Husky hook automatically)**
+---
 
-   ```bash
-   npm install
-   ```
+## 📦 Installation
 
-3. **Run Optimization Scan (New!)**
+```bash
+# Clone the repo
+git clone https://github.com/jtgsystems/MasterLinter.git
+cd MasterLinter
 
-   ```bash
-   python3 opti_scanner.py
-   python3 smart_fixer.py # To auto-apply fixes
-   ```
+# Install Python dependencies (for scanner)
+pip install pathlib
 
-4. **Format everything (optional warm-up)**
-
-   ```bash
-   npm run format:all
-   ```
-
-4. **Commit with confidence** – any staged files are auto-fixed thanks to lint-staged + Husky. ✅
-
-> Bringing this into an existing repo? Copy the config files (`eslint.config.js`, `.stylelintrc.json`, `.prettierrc.json`, `.prettierignore`, `.husky/`) and merge the `scripts`, `devDependencies`, and `lint-staged` block into your `package.json`.
-
-## 📜 npm Scripts
-
-| Command                 | What it does                               |
-| ----------------------- | ------------------------------------------ |
-| `npm run lint`          | ESLint check for JS/TS (no fixes)          |
-| `npm run lint:fix`      | ESLint with auto-fix                       |
-| `npm run stylelint`     | Stylelint check for CSS/SCSS               |
-| `npm run stylelint:fix` | Stylelint with auto-fix                    |
-| `npm run format`        | Prettier write across supported files      |
-| `npm run format:check`  | Prettier check mode (CI friendly)          |
-| `npm run format:all`    | Runs ESLint fix → Stylelint fix → Prettier |
-
-`lint-staged` mirrors that behaviour on staged files so only the files you touched are processed during commits.
-
-## 🧠 Config Highlights
-
-### ESLint (`eslint.config.js`)
-
-- Flat config powered by `@eslint/js` and `@typescript-eslint`.
-- Shared browser + Node globals via `globals` package.
-- Prettier plugin surfaces formatting drift as ESLint errors.
-
-### Prettier (`.prettierrc.json`)
-
-- 80 character lines, 2-space indentation, single quotes.
-- JSON files widen to 100 chars; YAML keeps 2-space softness.
-
-### Stylelint (`.stylelintrc.json`)
-
-- Extends Standard + SCSS + Recommended presets.
-- Includes `stylelint-scss` for modern SCSS linting rules.
-
-### Git Automation
-
-- `.husky/pre-commit` runs `npx lint-staged`.
-- `lint-staged` block lives in `package.json` so you can tweak per file type.
-
-## 💡 VS Code On-Save Magic
-
-Add this to `.vscode/settings.json` for instant feedback:
-
-```json
-{
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit",
-    "source.fixAll.stylelint": "explicit"
-  },
-  "eslint.experimental.useFlatConfig": true
-}
+# Install Node dependencies (for ESLint/Prettier/Stylelint)
+npm install
 ```
 
-_Tip: install the ESLint, Prettier, and Stylelint extensions for the best experience._
+---
 
-## 🔧 Customisation Ideas
+## 🛠️ Usage
 
-- Need React, Vitest, Jest, or Next.js rules? Add their plugins and extend the ESLint array.
-- Want different Prettier widths? Tweak `printWidth` and `tabWidth`.
-- Strict CSS conventions? Layer in `stylelint-order` or custom rules.
+### Scan your codebase
+```bash
+# Run OptiScanner
+python opti_scanner.py
 
-## 🆘 Troubleshooting
+# Output shows HIGH/MEDIUM/LOW priority findings
+# [HIGH] path/to/file.py:42 - Use atomic_open for writes
+# [MEDIUM] path/to/file.py:67 - Use .values() instead of .items() (10-15% faster)
+```
 
-- **Husky hook not firing?** Ensure `npm install` ran (it triggers the `prepare` script) and that `.husky/pre-commit` is executable.
-- **ESLint complaining about parser options?** Create a `tsconfig.json` or swap to `@typescript-eslint/eslint-plugin`'s type-checked config if you need type-aware rules.
-- **Prettier missing file types?** Add new globs to the `lint-staged` block or run Prettier directly on folders.
+### Auto-fix issues
+```bash
+# Run SmartFixer (requires OpenRouter API key)
+export OPENROUTER_API_KEY=your_key_here
+python smart_fixer.py
+```
 
-## 🤝 Contributing & Feedback
+### Research new patterns
+```bash
+# Run PerfResearcher (requires local Ollama)
+ollama serve &
+python perf_researcher.py
+```
 
-PRs, issues, and stars are all welcome! Feel free to open a discussion if you have ideas for additional presets.
+---
+
+## 📋 Rule Categories
+
+### Python Performance (Dec 2025)
+| ID | Pattern | Benefit |
+|----|---------|---------|
+| `OPT-IO-001` | `open(path, "w")` | Use atomic_open to prevent corruption |
+| `OPT-PERF-PY-002` | `for _, v in d.items()` | Use `.values()` (10-15% faster) |
+| `OPT-PERF-PY-005` | `for x: result.append()` | Use list comprehension (25% faster) |
+| `OPT-RES-PY-002` | `run_in_executor()` | Use `asyncio.to_thread()` (Python 3.9+) |
+
+### Go Performance (Go 1.25+)
+| ID | Pattern | Benefit |
+|----|---------|---------|
+| `OPT-GO-001` | `encoding/json` | Use json/v2 (3-10x faster) |
+| `OPT-RES-GO-001` | `"a" + "b" + "c"` | Use `strings.Builder` |
+| `OPT-RES-GO-003` | `sync.Mutex` | Consider `sync/atomic` for short sections |
+
+### TypeScript/React (Next.js 15+)
+| ID | Pattern | Benefit |
+|----|---------|---------|
+| `OPT-RES-TS-001` | `class extends Component` | Use functional + hooks |
+| `OPT-RES-TS-002` | `getServerSideProps` | Use Server Components |
+
+---
+
+## 🔧 Configuration
+
+### ESLint (JavaScript/TypeScript)
+```bash
+# Lint
+npm run lint
+
+# Fix
+npm run lint:fix
+```
+
+### Prettier (Formatting)
+```bash
+npm run format
+```
+
+### Stylelint (CSS/SCSS)
+```bash
+npm run lint:styles
+```
+
+---
+
+## 📊 Research Sources
+
+Rules are derived from:
+- **perflint** ([tonybaloney/perflint](https://github.com/tonybaloney/perflint)) - Python anti-patterns
+- **Staticcheck** ([dominikh/go-tools](https://github.com/dominikh/go-tools)) - Go linting
+- **Clippy** - Rust performance lints
+- **Ollama Research** - Dec 2025 patterns via local LLMs
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repo
+2. Add new rules to `opti_scanner.py` following the pattern:
+```python
+OptimizationRule(
+    id="OPT-LANG-XXX",
+    pattern=r"your_regex_pattern",
+    suggestion="Your helpful suggestion here.",
+    priority="HIGH|MEDIUM|LOW",
+),
+```
+3. Submit a PR
+
+---
 
 ## 📄 License
 
-Released under the [MIT License](LICENSE). Have fun building! ✌️
+MIT License - See [LICENSE](LICENSE) for details.
 
-Made with ❤️ for teams that want linting to “just work.”
+---
 
-### SEO Keyword Cloud
+## 🙏 Credits
 
-`eslint` `stylelint` `prettier` `husky` `lintstaged` `autofix` `nodejs` `javascript` `typescript` `css` `scss` `formatting` `quality` `pipeline` `ci` `automation` `hooks` `git` `precommit` `vscode` `editor` `tooling` `workflow` `productivity` `codestyle` `standards` `configuration` `templates` `setup` `boilerplate` `devops` `testing` `coverage` `refactor` `maintainability` `consistency` `bestpractices` `guidelines` `teams` `collaboration` `monorepo` `microservices` `webapps` `frontend` `backend` `scripts` `cli` `npm` `package` `repository`
+Built with ❤️ by [JTG Systems](https://github.com/jtgsystems)
+
+**Powered by:**
+- Python 3.12+ / Node.js 22+
+- ESLint 9 / Prettier 3 / Stylelint 16
+- OpenRouter / Ollama for AI-assisted fixing

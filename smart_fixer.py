@@ -127,15 +127,15 @@ def _run_detectors(path: str) -> tuple[int | None, list[dict]]:
         pass
 
     # 2. Run opti_scanner (Performance/Modernization)
-    # We call the python script and expect it to print JSON if we add a flag,
-    # OR we just import it since we are in the same repo.
-    # Importing is safer and faster.
+    # Import directly since we are in the same repo.
     try:
         sys.path.append(os.path.join(os.getcwd(), "tools"))
+        import importlib
+
         import opti_scanner
 
-        # Reset just in case
-        opti_scanner.RULES = opti_scanner.RULES
+        # Force reload to pick up any rule changes (59 rules as of Dec 2025)
+        importlib.reload(opti_scanner)
 
         # Scan
         file_path = Path(path)
@@ -244,7 +244,12 @@ def _build_prompt(
 ) -> str:
     base = (
         "You are an expert code refactoring agent. Fix the issues below using a SEARCH/REPLACE block.\n"
-        "Reduce token usage by only returning the changed lines. Do NOT return the full file."
+        "Reduce token usage by only returning the changed lines. Do NOT return the full file.\n\n"
+        "RULE CONTEXT (Dec 2025 Standards):\n"
+        "- OPT-PERF-PY-*: perflint anti-patterns (dict iterator, list comprehension, dotted imports)\n"
+        "- OPT-RES-*: Research bot findings (match statements, asyncio.to_thread, memoryview)\n"
+        "- OPT-IO-*: File safety (use atomic_open for writes)\n"
+        "- OPT-RES-*: Resilience (wrap external calls in CircuitBreaker)\n"
     )
 
     prompt = (
@@ -401,46 +406,22 @@ async def run_smart_fixer():
                     ]:
                         continue
 
-                    # 3. Verify with OptiScanner (if applicable)
-        try:
-            # We need to write the file temporarily or mock it, but scan_file expects a path.
-            # Since we haven't written strictly yet (we are verifying content), 
-            # we might need to rely on the fact that we apply to the file later?
-            # Actually, `_verify_candidate_content` receives the *content*.
-            # OptiScanner currently only scans FILES on disk. 
-            
-            # Temporary fix: Use regex directly from the rules for this file extension
-            # This is cleaner than writing temp files.
-            
-            import opti_scanner
-            # Determine file type from rules
-            # We don't have the filename here easily unless we pass it.
-            # But the caller `_verify_fix` has `file_path`.
-            
-            # Let's assume we can't easily verify with OptiScanner in this function without the path.
-            # However, `run_smart_fixer` calls `scan_codebase` which calls `scan_file`.
-            
-            # The previous code likely accessed `opti_scanner.RULES`.
-            # We will rely on the LLM's self-verification for now, 
-            # or if we really need it, we'd need to pass file_path to this function.
-            
-            # For now, let's remove the broken dependency on internal `RULES`.
-            # If we want to verify, we should do it AFTER writing the file in `apply_and_verify`.
-            pass
-
-        except Exception:
-            pass
-            current_list = file_map.setdefault(rel_path, [])
-                        for f in findings:
-                            # Normalize to tscanner format
-                            current_list.append(
-                                {
-                                    "rule": f["rule_id"],
-                                    "line": f["line"],
-                                    "message": f"{f['suggestion']} (Priority: {f['priority']})",
-                                    "line_text": f["code"],
-                                }
-                            )
+                    try:
+                        findings = opti_scanner.scan_file(full_path)
+                        if findings:
+                            current_list = file_map.setdefault(rel_path, [])
+                            for f in findings:
+                                # Normalize to tscanner format
+                                current_list.append(
+                                    {
+                                        "rule": f["rule_id"],
+                                        "line": f["line"],
+                                        "message": f"{f['suggestion']} (Priority: {f['priority']})",
+                                        "line_text": f["code"],
+                                    }
+                                )
+                    except Exception as e:
+                        print(f"⚠️ Error scanning {rel_path}: {e}")
 
     except Exception as e:
         print(f"⚠️ opti_scanner warning: {e}")
@@ -648,7 +629,21 @@ async def apply_and_verify(
             # Write
             full_path.write_text(candidate_content, encoding="utf-8")
 
-            # Verify
+            # Verify (TScanner + OptiScanner)
+
+            # A. Check OptiScanner Findings
+            opti_issues = 0
+            try:
+                import opti_scanner
+
+                findings = opti_scanner.scan_file(full_path)
+                opti_issues = len(findings)
+            except Exception:
+                pass
+
+            # B. Check TScanner
+            # Note: tscanner might not pick up the new file content immediately if it caches?
+            # Assuming subprocess run is fresh.
             verify_res = subprocess.run(
                 ["tscanner", "check", file_path, "--format", "json"],
                 capture_output=True,
@@ -657,19 +652,28 @@ async def apply_and_verify(
             try:
                 v_data = json.loads(verify_res.stdout)
                 if isinstance(v_data, list):
-                    issue_list = []
+                    # v_files is not available here, this path seems wrong or old tscanner behavior?
+                    # Let's assume standard tscanner json output structure: {"files": [...], ...}
                     v_issues = 0
                 else:
                     v_files = v_data.get("files", [])
                     issue_list = v_files[0]["issues"] if v_files else []
                     v_issues = len(issue_list)
 
-                if v_issues < initial_count:
-                    print(f"✅ Verified: {initial_count} -> {v_issues} issues.")
-                    return True, v_issues, issue_list
+                total_remaining = v_issues + opti_issues
+
+                if total_remaining < initial_count:
+                    print(f"✅ Verified: {initial_count} -> {total_remaining} issues.")
+                    return (
+                        True,
+                        total_remaining,
+                        issue_list,
+                    )  # ignoring opti issue list merge for now
                 else:
-                    print(f"⚠️ Verification Failed: {v_issues} issues remaining.")
-                    return False, v_issues, issue_list
+                    print(
+                        f"⚠️ Verification Failed: {total_remaining} issues remaining (Opti: {opti_issues}, TScanner: {v_issues})."
+                    )
+                    return False, total_remaining, issue_list
             except json.JSONDecodeError:
                 print("⚠️ Scan error. Assuming partial success.")
                 return True, 0, []

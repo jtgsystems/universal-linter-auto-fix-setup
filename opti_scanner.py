@@ -125,6 +125,74 @@ PY_RULES = [
         suggestion="Python 3.14 optimizes UUID generation (40% faster). Ensure you are on the latest runtime.",
         priority="LOW",
     ),
+    # --- RESEARCH BOT FINDINGS (Dec 2025) ---
+    OptimizationRule(
+        id="OPT-RES-PY-001",
+        pattern=r"if\s+.+:\s*\n.*elif\s+.+:\s*\n.*elif",
+        suggestion="Long if/elif chains detected. Use `match` statement (Python 3.10+) for cleaner dispatch.",
+        priority="LOW",
+    ),
+    OptimizationRule(
+        id="OPT-RES-PY-002",
+        pattern=r"run_in_executor\s*\(",
+        suggestion="Legacy executor pattern. Use `asyncio.to_thread()` (Python 3.9+) for cleaner blocking call offload.",
+        priority="MEDIUM",
+    ),
+    OptimizationRule(
+        id="OPT-RES-PY-003",
+        pattern=r"bytes\([^)]+\)",
+        suggestion="Copying bytes data? Use `memoryview` for zero-copy access to raw buffer data.",
+        priority="LOW",
+    ),
+    OptimizationRule(
+        id="OPT-RES-PY-004",
+        pattern=r"for\s+.+:\s*\n\s+.*self\.\w+.*self\.\w+",
+        suggestion="Repeated attribute access in loop. Cache `self.attr` in local variable for faster access.",
+        priority="LOW",
+    ),
+    # --- PERFLINT ANTI-PATTERNS (GitHub: tonybaloney/perflint) ---
+    OptimizationRule(
+        id="OPT-PERF-PY-001",
+        pattern=r"for\s+\w+\s+in\s+list\(",
+        suggestion="Unnecessary list() on iterable. Iterating directly is faster.",
+        priority="MEDIUM",
+    ),
+    OptimizationRule(
+        id="OPT-PERF-PY-002",
+        pattern=r"for\s+_,\s*\w+\s+in\s+\w+\.items\(\)",
+        suggestion="Discarding key in .items() loop. Use `.values()` instead (10-15% faster).",
+        priority="MEDIUM",
+    ),
+    OptimizationRule(
+        id="OPT-PERF-PY-003",
+        pattern=r"for\s+\w+,\s*_\s+in\s+\w+\.items\(\)",
+        suggestion="Discarding value in .items() loop. Use `.keys()` instead (10-15% faster).",
+        priority="MEDIUM",
+    ),
+    OptimizationRule(
+        id="OPT-PERF-PY-004",
+        pattern=r"for\s+.+:\s*\n\s+try:",
+        suggestion="try-except inside loop has overhead (pre-Python 3.10). Move loop inside try block.",
+        priority="MEDIUM",
+    ),
+    OptimizationRule(
+        id="OPT-PERF-PY-005",
+        pattern=r"\[\s*\].*\n.*for\s+.+:\s*\n\s+.*\.append\(",
+        suggestion="Building list with for-loop + append. Use list comprehension (25% faster).",
+        priority="MEDIUM",
+    ),
+    OptimizationRule(
+        id="OPT-PERF-PY-006",
+        pattern=r"=\s*\[\s*\"[^\"]+\"\s*,",
+        suggestion="Non-mutated list literal? Use tuple instead for faster construction and indexing.",
+        priority="LOW",
+    ),
+    OptimizationRule(
+        id="OPT-PERF-PY-007",
+        pattern=r"for\s+.+:\s*\n\s+.*os\.\w+\.",
+        suggestion="Dotted import in loop (os.path.xxx). Import directly for 10-15% speedup.",
+        priority="LOW",
+    ),
 ]
 
 # --- TYPESCRIPT / REACT / NODE ECOSYSTEM RULES ---
@@ -177,6 +245,25 @@ TS_RULES = [
         suggestion="Ensure Stylelint v16+ is used. It fixes false positives and supports modern CSS syntax natively.",
         priority="LOW",
     ),
+    # --- RESEARCH BOT FINDINGS (Dec 2025) ---
+    OptimizationRule(
+        id="OPT-RES-TS-001",
+        pattern=r"class\s+\w+\s+extends\s+(React\.)?Component",
+        suggestion="Class components are legacy. Use functional components with hooks for better performance and smaller bundles.",
+        priority="MEDIUM",
+    ),
+    OptimizationRule(
+        id="OPT-RES-TS-002",
+        pattern=r"getServerSideProps|getStaticProps",
+        suggestion="Legacy data fetching. Next.js 15+ Server Components with `async` are faster and simpler.",
+        priority="LOW",
+    ),
+    OptimizationRule(
+        id="OPT-RES-TS-003",
+        pattern=r"JSON\.(parse|stringify)",
+        suggestion="Large JSON operations? Consider `fast-json-stringify` for 2-5x speedup.",
+        priority="LOW",
+    ),
 ]
 
 # --- GO RULES (Go 1.25+) ---
@@ -193,7 +280,33 @@ GO_RULES = [
         suggestion="Manual GOMAXPROCS tuning? Go 1.25 is container-aware by default. Remove manual overrides.",
         priority="LOW",
     ),
+    # --- RESEARCH BOT FINDINGS (Dec 2025) ---
+    OptimizationRule(
+        id="OPT-RES-GO-001",
+        pattern=r'"\s*\+\s*"',
+        suggestion="String concatenation with `+`. Use `strings.Builder` for O(n) performance in loops.",
+        priority="MEDIUM",
+    ),
+    OptimizationRule(
+        id="OPT-RES-GO-002",
+        pattern=r"regexp\.Compile\(",
+        suggestion="Compile regex inside function? Move to package level `var` for reuse and avoid re-compilation.",
+        priority="MEDIUM",
+    ),
+    OptimizationRule(
+        id="OPT-RES-GO-003",
+        pattern=r"sync\.Mutex",
+        suggestion="Mutex for short critical sections? Consider `sync/atomic` for lock-free performance.",
+        priority="LOW",
+    ),
+    OptimizationRule(
+        id="OPT-RES-GO-004",
+        pattern=r"go\s+func\(",
+        suggestion="Excessive goroutine creation? Consider worker pools to reduce overhead.",
+        priority="LOW",
+    ),
 ]
+
 
 # --- RUST RULES (2024 Edition / 2025) ---
 RUST_RULES = [
@@ -221,6 +334,31 @@ RUST_RULES = [
         suggestion="Legacy async block inside closure? Rust 2024 supports native `async || {}` closures.",
         priority="MEDIUM",
     ),
+    # --- RESEARCH BOT FINDINGS (Dec 2025) ---
+    OptimizationRule(
+        id="OPT-RES-RS-001",
+        pattern=r"String::new\(\)",
+        suggestion="String allocation loop? Use `String::with_capacity(n)` to pre-allocate and avoid resizing.",
+        priority="MEDIUM",
+    ),
+    OptimizationRule(
+        id="OPT-RES-RS-002",
+        pattern=r"\.collect::<Vec<",
+        suggestion="Collecting into Vec for processing? Chain iterators directly to avoid intermediate allocations.",
+        priority="LOW",
+    ),
+    OptimizationRule(
+        id="OPT-RES-RS-003",
+        pattern=r"#\[inline\]",
+        suggestion="Manual inlining? Profile first. Overuse increases binary size with marginal gains.",
+        priority="LOW",
+    ),
+    OptimizationRule(
+        id="OPT-RES-RS-004",
+        pattern=r"serde_json::(from_str|to_string)",
+        suggestion="High-throughput JSON? Use `serde_json::with_capacity` or `postcard` for specialized perf.",
+        priority="LOW",
+    ),
 ]
 
 
@@ -238,7 +376,27 @@ MOJO_RULES = [
         suggestion="Variable declared with `var`. If immutable, use `let` for better compiler optimization.",
         priority="LOW",
     ),
+    # --- RESEARCH BOT FINDINGS (Dec 2025) ---
+    OptimizationRule(
+        id="OPT-RES-MOJO-001",
+        pattern=r"fn\s+[a-zA-Z0-9_]+\(",
+        suggestion="Add `final` to methods returning `Self` for static dispatch and inlining benefits.",
+        priority="LOW",
+    ),
+    OptimizationRule(
+        id="OPT-RES-MOJO-002",
+        pattern=r"import\s+Python",
+        suggestion="Python interop has overhead. Re-implement perf-critical parts in native Mojo for max speed.",
+        priority="MEDIUM",
+    ),
+    OptimizationRule(
+        id="OPT-RES-MOJO-003",
+        pattern=r"List\[",
+        suggestion="Generic List detected. Use `Sequence` with explicit types for SIMD optimizations.",
+        priority="LOW",
+    ),
 ]
+
 
 # --- SHELL / CLI COMMAND RULES (detected in Python subprocess or Shell scripts) ---
 # We scan .py files for subprocess calls and .sh files for direct calls
@@ -358,6 +516,39 @@ IGNORE_EXTENSIONS = {
 }
 
 
+def scan_text(
+    content: str, extension: str, file_path_str: str = "memory"
+) -> List[Dict[str, Any]]:
+    """Scans raw text content using rules for the given extension."""
+    mock_path = Path(f"dummy{extension}")
+    rules = get_rules_for_file(mock_path)
+
+    if not rules:
+        return []
+
+    findings = []
+    lines = content.splitlines()
+
+    for i, line in enumerate(lines):
+        # Skip comments (Basic heuristic)
+        if line.strip().startswith(("#", "//")):
+            continue
+
+        for rule in rules:
+            if rule.pattern.search(line):
+                findings.append(
+                    {
+                        "rule_id": rule.id,
+                        "file": file_path_str,
+                        "line": i + 1,
+                        "code": line.strip(),
+                        "suggestion": rule.suggestion,
+                        "priority": rule.priority,
+                    }
+                )
+    return findings
+
+
 def scan_file(file_path: Path) -> List[Dict[str, Any]]:
     # Extension Check
     if file_path.suffix in IGNORE_EXTENSIONS:
@@ -368,36 +559,17 @@ def scan_file(file_path: Path) -> List[Dict[str, Any]]:
     if "_backup" in name_lower or "backup_" in name_lower:
         return []
 
-    rules = get_rules_for_file(file_path)
-    if not rules:
+    # Pre-check rules to avoid reading file if no rules apply
+    if not get_rules_for_file(file_path):
         return []
 
-    findings = []
     try:
         content = file_path.read_text(encoding="utf-8")
-        lines = content.splitlines()
-
-        for i, line in enumerate(lines):
-            # Skip comments
-            if line.strip().startswith(("#", "//")):
-                continue
-
-            for rule in rules:
-                if rule.pattern.search(line):
-                    findings.append(
-                        {
-                            "rule_id": rule.id,
-                            "file": str(file_path),
-                            "line": i + 1,
-                            "code": line.strip(),
-                            "suggestion": rule.suggestion,
-                            "priority": rule.priority,
-                        }
-                    )
+        return scan_text(content, file_path.suffix, str(file_path))
     except Exception:
         pass  # Skip binary or unreadable
 
-    return findings
+    return []
 
 
 def main():
