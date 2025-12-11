@@ -16,23 +16,40 @@ The plug-and-play toolkit for opinionated, auto-fixing linting across modern Nod
 - **Stylelint 16** + SCSS plugin to keep styles squeaky clean.
 - **Prettier 3** for JSON, YAML, Markdown, HTML, TOML, and more.
 - **Husky + lint-staged** so every commit fixes itself before it lands.
+- **Performance Optimization Suite**:
+  - `opti_scanner.py`: A regex-based scanner for Dec 2025 optimization patterns across Python (3.14+), Go (1.25+), Rust (2024), and Node.js.
+  - `smart_fixer.py`: An automated fixer that applies these optimizations.
+  - `perf_researcher.py`: A tool to actively research new performance trends using LLMs.
 - Sensible defaults for browser + Node globals, with overrides ready to tweak.
 
 ## 🛠️ Quick Start
 
 1. **Clone or copy the template**
+
    ```bash
    git clone https://github.com/jtgsystems/universal-linter-auto-fix-setup.git my-project
    cd my-project
    ```
+
 2. **Install dependencies (installs Husky hook automatically)**
+
    ```bash
    npm install
    ```
-3. **Format everything (optional warm-up)**
+
+3. **Run Optimization Scan (New!)**
+
+   ```bash
+   python3 opti_scanner.py
+   python3 smart_fixer.py # To auto-apply fixes
+   ```
+
+4. **Format everything (optional warm-up)**
+
    ```bash
    npm run format:all
    ```
+
 4. **Commit with confidence** – any staged files are auto-fixed thanks to lint-staged + Husky. ✅
 
 > Bringing this into an existing repo? Copy the config files (`eslint.config.js`, `.stylelintrc.json`, `.prettierrc.json`, `.prettierignore`, `.husky/`) and merge the `scripts`, `devDependencies`, and `lint-staged` block into your `package.json`.
