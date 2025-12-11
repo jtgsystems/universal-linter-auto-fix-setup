@@ -11,7 +11,9 @@
 
 ## 🚀 Features
 
-### OptiScanner (`opti_scanner.py`)
+### Python Tools (`python/`)
+
+#### OptiScanner (`opti_scanner.py`)
 A lightning-fast optimization pattern detector with **59 rules** covering:
 
 | Language | Rules | Focus Areas |
@@ -23,19 +25,25 @@ A lightning-fast optimization pattern detector with **59 rules** covering:
 | **Mojo** | 5 | def→fn migration, static dispatch, SIMD optimization |
 | **Shell** | 3 | grep→ripgrep, find→fd, os.system→subprocess |
 
-### SmartFixer (`smart_fixer.py`)
+#### SmartFixer (`smart_fixer.py`)
 LLM-powered automatic code fixer that:
 - 🔍 Scans using OptiScanner + TScanner
 - 🤖 Uses GPT-OSS to generate minimal SEARCH/REPLACE patches
-- ✅ Verifies fixes before applying
+- ✅ Provides **concrete BEFORE/AFTER code examples** to the LLM
 - 🔄 Self-corrects up to 3 attempts per file
 - 🌿 Operates on isolated Git branches for safety
 
-### PerfResearcher (`perf_researcher.py`)
+#### PerfResearcher (`perf_researcher.py`)
 Ollama-powered research bot that:
-- 📚 Researches latest optimization patterns (Python 3.14, Go 1.25, Rust 2024, etc.)
+- 📚 Researches latest optimization patterns (Python 3.14, Go 1.25, Rust 2024)
 - 💾 Saves findings to JSON for rule integration
-- 🔄 Uses local LLMs (gemma3, qwen3, etc.)
+- �� Uses local LLMs (gemma3, qwen3, etc.)
+
+### JavaScript/TypeScript Tools (Root)
+- **ESLint 9** - Modern flat config with auto-fix
+- **Prettier 3** - Opinionated formatting
+- **Stylelint 16** - CSS/SCSS linting
+- **Husky + lint-staged** - Pre-commit hooks
 
 ---
 
@@ -46,7 +54,7 @@ Ollama-powered research bot that:
 git clone https://github.com/jtgsystems/MasterLinter.git
 cd MasterLinter
 
-# Install Python dependencies (for scanner)
+# Install Python dependencies
 pip install pathlib
 
 # Install Node dependencies (for ESLint/Prettier/Stylelint)
@@ -57,117 +65,85 @@ npm install
 
 ## 🛠️ Usage
 
-### Scan your codebase
+### Python Scanner
 ```bash
-# Run OptiScanner
+cd python
 python opti_scanner.py
 
-# Output shows HIGH/MEDIUM/LOW priority findings
+# Output:
 # [HIGH] path/to/file.py:42 - Use atomic_open for writes
-# [MEDIUM] path/to/file.py:67 - Use .values() instead of .items() (10-15% faster)
+#    FIX: BEFORE: with open(path, "w") as f:
+#         AFTER:  with atomic_open(path, "w") as f:
 ```
 
-### Auto-fix issues
+### Auto-fix with LLM
 ```bash
-# Run SmartFixer (requires OpenRouter API key)
 export OPENROUTER_API_KEY=your_key_here
-python smart_fixer.py
+python python/smart_fixer.py
 ```
 
 ### Research new patterns
 ```bash
-# Run PerfResearcher (requires local Ollama)
 ollama serve &
-python perf_researcher.py
+python python/perf_researcher.py
+```
+
+### JavaScript/TypeScript
+```bash
+npm run lint        # ESLint check
+npm run lint:fix    # ESLint auto-fix
+npm run format      # Prettier format
+npm run lint:styles # Stylelint check
 ```
 
 ---
 
-## 📋 Rule Categories
+## 📋 Key Rule Examples
 
-### Python Performance (Dec 2025)
-| ID | Pattern | Benefit |
-|----|---------|---------|
-| `OPT-IO-001` | `open(path, "w")` | Use atomic_open to prevent corruption |
-| `OPT-PERF-PY-002` | `for _, v in d.items()` | Use `.values()` (10-15% faster) |
-| `OPT-PERF-PY-005` | `for x: result.append()` | Use list comprehension (25% faster) |
-| `OPT-RES-PY-002` | `run_in_executor()` | Use `asyncio.to_thread()` (Python 3.9+) |
-
-### Go Performance (Go 1.25+)
-| ID | Pattern | Benefit |
-|----|---------|---------|
-| `OPT-GO-001` | `encoding/json` | Use json/v2 (3-10x faster) |
-| `OPT-RES-GO-001` | `"a" + "b" + "c"` | Use `strings.Builder` |
-| `OPT-RES-GO-003` | `sync.Mutex` | Consider `sync/atomic` for short sections |
-
-### TypeScript/React (Next.js 15+)
-| ID | Pattern | Benefit |
-|----|---------|---------|
-| `OPT-RES-TS-001` | `class extends Component` | Use functional + hooks |
-| `OPT-RES-TS-002` | `getServerSideProps` | Use Server Components |
+| ID | Pattern | Fix |
+|----|---------|-----|
+| `OPT-PERF-PY-002` | `for _, v in d.items()` | `for v in d.values()` |
+| `OPT-PERF-PY-005` | `for x: list.append()` | List comprehension |
+| `OPT-IO-001` | `open(path, "w")` | `atomic_open(path, "w")` |
+| `OPT-RES-002` | `requests.get(url)` | Wrap in `CircuitBreaker` |
+| `OPT-GO-001` | `encoding/json` | `encoding/json/v2` |
+| `OPT-RS-001` | `.unwrap()` | Use `?` operator |
 
 ---
 
-## 🔧 Configuration
+## 📁 Project Structure
 
-### ESLint (JavaScript/TypeScript)
-```bash
-# Lint
-npm run lint
-
-# Fix
-npm run lint:fix
 ```
-
-### Prettier (Formatting)
-```bash
-npm run format
-```
-
-### Stylelint (CSS/SCSS)
-```bash
-npm run lint:styles
+MasterLinter/
+├── python/
+│   ├── opti_scanner.py    # 59-rule pattern detector
+│   ├── smart_fixer.py     # LLM-powered auto-fixer
+│   └── perf_researcher.py # Ollama research bot
+├── eslint.config.js       # ESLint 9 flat config
+├── .prettierrc.json       # Prettier settings
+├── .stylelintrc.json      # Stylelint settings
+├── .husky/                # Git pre-commit hooks
+├── package.json           # Node dependencies
+├── CHANGELOG.md           # Version history
+└── README.md              # This file
 ```
 
 ---
 
 ## 📊 Research Sources
 
-Rules are derived from:
-- **perflint** ([tonybaloney/perflint](https://github.com/tonybaloney/perflint)) - Python anti-patterns
+Rules derived from:
+- **perflint** ([tonybaloney/perflint](https://github.com/tonybaloney/perflint)) - Python anti-patterns with proven speedups
 - **Staticcheck** ([dominikh/go-tools](https://github.com/dominikh/go-tools)) - Go linting
 - **Clippy** - Rust performance lints
-- **Ollama Research** - Dec 2025 patterns via local LLMs
-
----
-
-## 🤝 Contributing
-
-1. Fork the repo
-2. Add new rules to `opti_scanner.py` following the pattern:
-```python
-OptimizationRule(
-    id="OPT-LANG-XXX",
-    pattern=r"your_regex_pattern",
-    suggestion="Your helpful suggestion here.",
-    priority="HIGH|MEDIUM|LOW",
-),
-```
-3. Submit a PR
+- **Dec 2025 LLM Research** via Ollama
 
 ---
 
 ## 📄 License
 
-MIT License - See [LICENSE](LICENSE) for details.
+MIT License - See [LICENSE](LICENSE)
 
 ---
 
-## 🙏 Credits
-
 Built with ❤️ by [JTG Systems](https://github.com/jtgsystems)
-
-**Powered by:**
-- Python 3.12+ / Node.js 22+
-- ESLint 9 / Prettier 3 / Stylelint 16
-- OpenRouter / Ollama for AI-assisted fixing
