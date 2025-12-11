@@ -19,12 +19,18 @@ logger = logging.getLogger(__name__)
 
 class OptimizationRule:
     def __init__(
-        self, id: str, pattern: str, suggestion: str, priority: str = "MEDIUM"
+        self,
+        id: str,
+        pattern: str,
+        suggestion: str,
+        priority: str = "MEDIUM",
+        fix_example: str = "",
     ):
         self.id = id
         self.pattern = re.compile(pattern)
         self.suggestion = suggestion
         self.priority = priority
+        self.fix_example = fix_example  # Before→After code example for LLM
 
 
 # --- DEFINITIONS FILE (In-Code for now, can be extracted to json) ---
@@ -36,6 +42,7 @@ PY_RULES = [
         pattern=r"(with\s+)?open\s*\([^)]*['\"]w[b\+]?['\"]",
         suggestion="Use `priority_core.file_ops.atomic_open` to prevent corruption. Standard `open('w')` truncates immediately.",
         priority="HIGH",
+        fix_example='BEFORE: with open(path, "w") as f:\n    f.write(data)\nAFTER:  from priority_core.file_ops import atomic_open\nwith atomic_open(path, "w") as f:\n    f.write(data)',
     ),
     # --- CONCURRENCY & RESILIENCE ---
     OptimizationRule(
@@ -43,18 +50,21 @@ PY_RULES = [
         pattern=r"time\.sleep\s*\(\s*[0-9]+",
         suggestion="Hardcoded blocking sleep detected. Use `asyncio.sleep` or `priority_core.resilience.BackoffStrategy`.",
         priority="MEDIUM",
+        fix_example="BEFORE: time.sleep(5)\nAFTER:  await asyncio.sleep(5)  # For async code\n# OR use BackoffStrategy for retry logic",
     ),
     OptimizationRule(
         id="OPT-RES-002",
         pattern=r"(requests|httpx|aiohttp)\.(get|post|put|delete)",
         suggestion="Unprotected external call. Wrap in `priority_core.resilience.CircuitBreaker` to handle timeouts/failures.",
         priority="HIGH",
+        fix_example="BEFORE: response = requests.get(url)\nAFTER:  from priority_core.resilience import CircuitBreaker\ncb = CircuitBreaker()\nresponse = await cb.call(requests.get, url)",
     ),
     OptimizationRule(
         id="OPT-RES-003",
         pattern=r"asyncio\.create_task\s*\(",
         suggestion="Fire-and-forget task? Ensure it's tracked (e.g. `BackgroundTasks` or `TaskGroup`) to prevent swallowing exceptions.",
         priority="LOW",
+        fix_example="BEFORE: asyncio.create_task(do_work())\nAFTER:  async with asyncio.TaskGroup() as tg:\n    tg.create_task(do_work())",
     ),
     # --- CACHING & MEMORY ---
     OptimizationRule(
@@ -62,11 +72,13 @@ PY_RULES = [
         pattern=r"(_?cache|_?memo|_?registry)\s*=\s*({}|dict\(\))",
         suggestion="Unbounded dictionary cache. Upgrade to `priority_core.smart_cache.ErrorInducedEvictionCache` to prevent OOM.",
         priority="MEDIUM",
+        fix_example="BEFORE: cache = {}\nAFTER:  from priority_core.smart_cache import ErrorInducedEvictionCache\ncache = ErrorInducedEvictionCache(max_size=1000)",
     ),
     OptimizationRule(
         id="OPT-PERF-001",
         pattern=r"\s+\+=\s+.*(str|f[\"'])",
         suggestion="String concatenation in loop? Use `list.append` and `''.join()` for O(n) performance.",
+        fix_example='BEFORE:\nresult = ""\nfor s in items:\n    result += s\nAFTER:\nparts = []\nfor s in items:\n    parts.append(s)\nresult = "".join(parts)',
         priority="LOW",
     ),
     # --- OBSERVABILITY ---
@@ -156,42 +168,49 @@ PY_RULES = [
         pattern=r"for\s+\w+\s+in\s+list\(",
         suggestion="Unnecessary list() on iterable. Iterating directly is faster.",
         priority="MEDIUM",
+        fix_example="BEFORE: for x in list(items):\nAFTER:  for x in items:",
     ),
     OptimizationRule(
         id="OPT-PERF-PY-002",
         pattern=r"for\s+_,\s*\w+\s+in\s+\w+\.items\(\)",
         suggestion="Discarding key in .items() loop. Use `.values()` instead (10-15% faster).",
         priority="MEDIUM",
+        fix_example="BEFORE: for _, value in data.items():\nAFTER:  for value in data.values():",
     ),
     OptimizationRule(
         id="OPT-PERF-PY-003",
         pattern=r"for\s+\w+,\s*_\s+in\s+\w+\.items\(\)",
         suggestion="Discarding value in .items() loop. Use `.keys()` instead (10-15% faster).",
         priority="MEDIUM",
+        fix_example="BEFORE: for key, _ in data.items():\nAFTER:  for key in data.keys():  # or just: for key in data:",
     ),
     OptimizationRule(
         id="OPT-PERF-PY-004",
         pattern=r"for\s+.+:\s*\n\s+try:",
         suggestion="try-except inside loop has overhead (pre-Python 3.10). Move loop inside try block.",
         priority="MEDIUM",
+        fix_example="BEFORE:\nfor item in items:\n    try:\n        process(item)\n    except Error:\n        pass\nAFTER:\ntry:\n    for item in items:\n        process(item)\nexcept Error:\n    pass",
     ),
     OptimizationRule(
         id="OPT-PERF-PY-005",
         pattern=r"\[\s*\].*\n.*for\s+.+:\s*\n\s+.*\.append\(",
         suggestion="Building list with for-loop + append. Use list comprehension (25% faster).",
         priority="MEDIUM",
+        fix_example="BEFORE:\nresult = []\nfor x in items:\n    result.append(x * 2)\nAFTER:\nresult = [x * 2 for x in items]",
     ),
     OptimizationRule(
         id="OPT-PERF-PY-006",
         pattern=r"=\s*\[\s*\"[^\"]+\"\s*,",
         suggestion="Non-mutated list literal? Use tuple instead for faster construction and indexing.",
         priority="LOW",
+        fix_example='BEFORE: colors = ["red", "green", "blue"]\nAFTER:  colors = ("red", "green", "blue")',
     ),
     OptimizationRule(
         id="OPT-PERF-PY-007",
         pattern=r"for\s+.+:\s*\n\s+.*os\.\w+\.",
         suggestion="Dotted import in loop (os.path.xxx). Import directly for 10-15% speedup.",
         priority="LOW",
+        fix_example="BEFORE:\nimport os\nfor f in files:\n    os.path.exists(f)\nAFTER:\nfrom os.path import exists\nfor f in files:\n    exists(f)",
     ),
 ]
 
@@ -544,8 +563,10 @@ def scan_text(
                         "code": line.strip(),
                         "suggestion": rule.suggestion,
                         "priority": rule.priority,
+                        "fix_example": rule.fix_example,  # Concrete before/after code
                     }
                 )
+
     return findings
 
 

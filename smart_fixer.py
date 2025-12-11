@@ -143,11 +143,16 @@ def _run_detectors(path: str) -> tuple[int | None, list[dict]]:
 
         # Convert to tscanner-like format for the LLM
         for f in opt_findings:
+            # Include fix_example if available for concrete solution
+            fix_hint = f.get("fix_example", "")
+            message = f"{f['suggestion']} (Priority: {f['priority']})"
+            if fix_hint:
+                message += f"\n    FIX: {fix_hint}"
             all_issues.append(
                 {
                     "rule": f["rule_id"],
                     "line": f["line"],
-                    "message": f"{f['suggestion']} (Priority: {f['priority']})",
+                    "message": message,
                     "line_text": f["code"],
                 }
             )
